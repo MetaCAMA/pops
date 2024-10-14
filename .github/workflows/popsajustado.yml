@@ -28,3 +28,24 @@ forest(res_sin_outliers,
        main = "Forest Plot Ajustado (Sin Outliers)", 
        xlab = "Tamaño del efecto",
        slab = paste(datos_sin_outliers$Author, datos_sin_outliers$Year))
+       # Calcular la varianza
+datos_filtrados$vi <- ((datos_filtrados$`upper95%CI` - datos_filtrados$`lower95%CI`) / (2 * 1.96))^2
+
+# Crear una columna para las etiquetas de Author y Year
+datos_filtrados$label <- paste(datos_filtrados$Author, datos_filtrados$Year)
+
+# Ejecutar el modelo de meta-análisis
+n_estudios <- nrow(datos_filtrados)
+
+if ("vi" %in% colnames(datos_filtrados) && "Size effect" %in% colnames(datos_filtrados)) {
+    if (n_estudios > 1) {
+        res <- rma.mv(yi = `Size effect`, V = vi, random = ~ 1 | Author, data = datos_filtrados)
+        print("Meta-análisis ejecutado con éxito.")
+
+        # Graficar el forest plot con etiquetas personalizadas
+        forest(res, slab = datos_filtrados$label)
+    } else {
+        print("No hay suficientes estudios para realizar el meta-análisis.")
+    }
+}
+
