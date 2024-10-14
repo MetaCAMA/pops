@@ -1,0 +1,30 @@
+# Definir umbrales para DFFITS y distancia de Cook
+threshold_dffits <- 2 * sqrt(n_studies)  # Umbral para DFFITS
+threshold_cooks <- 1  # Umbral común para distancia de Cook
+
+# Identificar estudios outliers
+outliers_dffits <- which(abs(dffits_values) > threshold_dffits)
+outliers_cooks <- which(cooks_distance > threshold_cooks)
+
+# Combinar índices de outliers
+indices_outliers <- unique(c(outliers_dffits, outliers_cooks))
+
+# Verificar los índices de outliers
+print(indices_outliers)
+# Filtrar los datos para que contengan solo los estudios que no son outliers
+datos_sin_outliers <- datos[-indices_outliers, ]
+library(metafor)
+
+# Ajustar el modelo multinivel sin los outliers
+res_sin_outliers <- rma.mv(yi = `Size effect`, 
+                           V = vi, 
+                           random = ~ 1 | Country, 
+                           data = datos_sin_outliers)
+
+# Resumen del modelo ajustado
+summary(res_sin_outliers)
+# Generar el forest plot
+forest(res_sin_outliers, 
+       main = "Forest Plot Ajustado (Sin Outliers)", 
+       xlab = "Tamaño del efecto",
+       slab = paste(datos_sin_outliers$Author, datos_sin_outliers$Year))
